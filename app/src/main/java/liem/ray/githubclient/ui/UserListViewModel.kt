@@ -42,7 +42,7 @@ class UserListViewModel(
 
 
     override fun onUserClick(userData: UserData) {
-        TODO("Not yet implemented")
+        navigator.navigateToUserDetail(username = userData.login)
     }
 
     data class State(
