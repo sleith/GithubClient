@@ -5,7 +5,7 @@ plugins {
 
 android {
     namespace = "liem.ray.githubclient"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "liem.ray.githubclient"
@@ -92,4 +92,6 @@ dependencies {
 
     // Glide
     implementation(libs.glide)
+    implementation(libs.landscapist.glide)
+    implementation(libs.landscapist.placeholder)
 }
