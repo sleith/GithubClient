@@ -12,4 +12,11 @@ class UserApiInteractor(private val userApi: UserApi) {
             userList.map { it.toData() }
         }
     }
+
+    suspend fun getUserDetail(username: String) = withContext(Dispatchers.IO) {
+        Result.runCatching {
+            val userDetail = userApi.getUserDetail(username = username)
+            userDetail.toData()
+        }
+    }
 }

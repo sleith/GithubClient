@@ -1,4 +1,9 @@
 <resources>
     <string name="app_name">GithubClient</string>
     <string name="common_ok">OK</string>
+    <string name="common_followers">Followers</string>
+    <string name="common_following">Following</string>
+    <string name="common_repositories">Repositories</string>
+    <string name="common_gists">Gists</string>
+    <string name="user_detail_joined_at">Joined at %s</string>
 </resources>

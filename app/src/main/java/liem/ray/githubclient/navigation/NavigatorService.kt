@@ -7,6 +7,10 @@ import androidx.navigation.Navigator
 class NavigatorService(
     private val navController: NavController
 ) {
+    fun goBack() {
+        navController.popBackStack()
+    }
+
     fun navigateToUserDetail(username: String) {
         navigate(Screens.UserDetailScreen.route + "/$username")
     }
