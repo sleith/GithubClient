@@ -94,4 +94,7 @@ dependencies {
     implementation(libs.glide)
     implementation(libs.landscapist.glide)
     implementation(libs.landscapist.placeholder)
+
+    // Mockk
+    testImplementation(libs.mockk)
 }
