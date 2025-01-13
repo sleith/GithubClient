@@ -6,15 +6,15 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import liem.ray.githubclient.api.interactors.EventApiInteractor
-import liem.ray.githubclient.api.interactors.UserApiInteractor
 import liem.ray.githubclient.common.item.DialogItem
 import liem.ray.githubclient.data.EventData
 import liem.ray.githubclient.data.UserDetailData
 import liem.ray.githubclient.navigation.NavigatorService
+import liem.ray.githubclient.repos.UserRepository
 
 class UserDetailViewModel(
     private val username: String,
-    private val userApiInteractor: UserApiInteractor,
+    private val userRepository: UserRepository,
     private val eventApiInteractor: EventApiInteractor,
     private val navigator: NavigatorService,
 ) : ViewModel(), UserDetailViewModelActionHandler {
@@ -27,7 +27,7 @@ class UserDetailViewModel(
 
     private fun onViewStartObserving() {
         viewModelScope.launch {
-            userApiInteractor.getUserDetail(username = username)
+            userRepository.getUserDetail(username = username)
                 .fold(
                     onSuccess = { _state.value = _state.value.copy(userDetail = it) },
                     onFailure = ::onApiError,

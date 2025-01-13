@@ -21,6 +21,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import liem.ray.githubclient.R
+import liem.ray.githubclient.common.ui.OnBottomReached
 import liem.ray.githubclient.data.UserData
 import liem.ray.githubclient.navigation.NavigatorService
 import liem.ray.githubclient.ui.common.BaseScreen
@@ -52,6 +53,7 @@ private fun Content(
                 )
             }
         }
+        listState.OnBottomReached { actionHandler.onLoadMore() }
     }
 
     state.dialogItem?.let { showDialog(it) }

@@ -6,10 +6,10 @@ import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 import liem.ray.githubclient.api.interactors.EventApiInteractor
-import liem.ray.githubclient.api.interactors.UserApiInteractor
 import liem.ray.githubclient.data.EventData
 import liem.ray.githubclient.data.UserDetailData
 import liem.ray.githubclient.navigation.NavigatorService
+import liem.ray.githubclient.repos.UserRepository
 import liem.ray.githubclient.rules.CoroutinesTestRule
 import org.junit.Rule
 import org.junit.Test
@@ -20,12 +20,12 @@ class UserDetailViewModelTest {
     @get:Rule
     val coroutinesTestRule = CoroutinesTestRule()
 
-    private val userApiInteractor = mockk<UserApiInteractor>(relaxed = true)
+    private val userRepository = mockk<UserRepository>(relaxed = true)
     private val eventApiInteractor = mockk<EventApiInteractor>(relaxed = true)
     private val navigator = mockk<NavigatorService>(relaxed = true)
     private val viewModel = UserDetailViewModel(
         username = "raymond",
-        userApiInteractor = userApiInteractor,
+        userRepository = userRepository,
         eventApiInteractor = eventApiInteractor,
         navigator = navigator,
     )
@@ -34,7 +34,7 @@ class UserDetailViewModelTest {
     fun `Should get user details and events when view start observing`() = runTest {
         val userDetailData = mockk<UserDetailData>()
         coEvery {
-            userApiInteractor.getUserDetail(username = any())
+            userRepository.getUserDetail(username = any())
         } returns Result.success(userDetailData)
 
         val eventItems = listOf(mockk<EventData>(), mockk<EventData>(), mockk<EventData>())
@@ -45,7 +45,7 @@ class UserDetailViewModelTest {
         viewModel.state
 
         coVerify {
-            userApiInteractor.getUserDetail(username = "raymond")
+            userRepository.getUserDetail(username = "raymond")
             eventApiInteractor.getEventList(username = "raymond", page = 1)
         }
         assertEquals(expected = userDetailData, actual = viewModel.state.value.userDetail)
@@ -55,7 +55,7 @@ class UserDetailViewModelTest {
     @Test
     fun `On get user detail failure should show error dialog`() = runTest {
         coEvery {
-            userApiInteractor.getUserDetail(username = any())
+            userRepository.getUserDetail(username = any())
         } returns Result.failure(Throwable(message = "Error"))
 
         coEvery {
@@ -70,7 +70,7 @@ class UserDetailViewModelTest {
     @Test
     fun `On get events failure should show error dialog`() = runTest {
         coEvery {
-            userApiInteractor.getUserDetail(username = any())
+            userRepository.getUserDetail(username = any())
         } returns Result.success(mockk())
 
         coEvery {

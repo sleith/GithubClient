@@ -16,33 +16,33 @@ import retrofit2.create
 import java.util.concurrent.TimeUnit
 
 val apiModule = module {
-  factory { HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BODY } }
-  factory {
-    GsonBuilder()
-      .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
-      .create()
-  }
+    factory { HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BODY } }
+    factory {
+        GsonBuilder()
+            .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
+            .create()
+    }
 
-  single {
-    OkHttpClient.Builder()
-      .addNetworkInterceptor(get<HttpLoggingInterceptor>())
-      .connectTimeout(NETWORK_TIMEOUT_DEFAULT_SECONDS, TimeUnit.SECONDS)
-      .readTimeout(NETWORK_TIMEOUT_DEFAULT_SECONDS, TimeUnit.SECONDS)
-      .build()
-  }
+    single {
+        OkHttpClient.Builder()
+            .addNetworkInterceptor(get<HttpLoggingInterceptor>())
+            .connectTimeout(NETWORK_TIMEOUT_DEFAULT_SECONDS, TimeUnit.SECONDS)
+            .readTimeout(NETWORK_TIMEOUT_DEFAULT_SECONDS, TimeUnit.SECONDS)
+            .build()
+    }
 
-  single {
-    Retrofit.Builder()
-      .addConverterFactory(ScalarsConverterFactory.create())
-      .addConverterFactory(GsonConverterFactory.create(get()))
-      .client(get())
-      .baseUrl("https://api.github.com/")
-      .build()
-  }
+    single {
+        Retrofit.Builder()
+            .addConverterFactory(ScalarsConverterFactory.create())
+            .addConverterFactory(GsonConverterFactory.create(get()))
+            .client(get())
+            .baseUrl("https://api.github.com/")
+            .build()
+    }
 
-  single { get<Retrofit>().create<UserApi>() }
+    single { get<Retrofit>().create<UserApi>() }
     single { get<Retrofit>().create<EventApi>() }
-  single { UserApiInteractor(get()) }
+    single { UserApiInteractor(get()) }
     single { EventApiInteractor(get()) }
 }
 

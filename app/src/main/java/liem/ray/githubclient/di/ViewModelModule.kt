@@ -7,11 +7,11 @@ import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.module
 
 val viewModelModule = module {
-    viewModel { (navigator: NavigatorService) -> UserListViewModel(userApiInteractor = get(), navigator = navigator) }
+    viewModel { (navigator: NavigatorService) -> UserListViewModel(userRepository = get(), navigator = navigator) }
     viewModel { (username: String, navigator: NavigatorService) ->
         UserDetailViewModel(
             username = username,
-            userApiInteractor = get(),
+            userRepository = get(),
             eventApiInteractor = get(),
             navigator = navigator
         )

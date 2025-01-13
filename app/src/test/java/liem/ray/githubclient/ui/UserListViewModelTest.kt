@@ -5,9 +5,9 @@ import io.mockk.coVerify
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.test.runTest
-import liem.ray.githubclient.api.interactors.UserApiInteractor
 import liem.ray.githubclient.data.UserData
 import liem.ray.githubclient.navigation.NavigatorService
+import liem.ray.githubclient.repos.UserRepository
 import liem.ray.githubclient.rules.CoroutinesTestRule
 import org.junit.Rule
 import org.junit.Test
@@ -18,10 +18,10 @@ class UserListViewModelTest {
     @get:Rule
     val coroutinesTestRule = CoroutinesTestRule()
 
-    private val userApiInteractor = mockk<UserApiInteractor>(relaxed = true)
+    private val userRepository = mockk<UserRepository>(relaxed = true)
     private val navigator = mockk<NavigatorService>(relaxed = true)
     private val viewModel = UserListViewModel(
-        userApiInteractor = userApiInteractor,
+        userRepository = userRepository,
         navigator = navigator,
     )
 
@@ -32,13 +32,13 @@ class UserListViewModelTest {
             UserData(login = "ray2", id = 2L, avatarUrl = "avatarUrl"),
         )
         coEvery {
-            userApiInteractor.getUserList(since = any())
+            userRepository.getUserList(since = any())
         } returns Result.success(userList)
 
         viewModel.state
 
         coVerify {
-            userApiInteractor.getUserList(since = any())
+            userRepository.getUserList(since = any())
         }
         val stateValue = viewModel.state.value
         assertEquals(expected = userList, stateValue.users)
@@ -47,7 +47,7 @@ class UserListViewModelTest {
     @Test
     fun `On get user list failure should show error dialog`() = runTest {
         coEvery {
-            userApiInteractor.getUserList(since = any())
+            userRepository.getUserList(since = any())
         } returns Result.failure(Throwable(message = "Error"))
 
         val errorDialogItem = viewModel.state.value.dialogItem
