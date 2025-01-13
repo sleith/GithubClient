@@ -5,14 +5,17 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import liem.ray.githubclient.api.interactors.EventApiInteractor
 import liem.ray.githubclient.api.interactors.UserApiInteractor
 import liem.ray.githubclient.common.item.DialogItem
+import liem.ray.githubclient.data.EventData
 import liem.ray.githubclient.data.UserDetailData
 import liem.ray.githubclient.navigation.NavigatorService
 
 class UserDetailViewModel(
     private val username: String,
     private val userApiInteractor: UserApiInteractor,
+    private val eventApiInteractor: EventApiInteractor,
     private val navigator: NavigatorService,
 ) : ViewModel(), UserDetailViewModelActionHandler {
 
@@ -27,17 +30,27 @@ class UserDetailViewModel(
             userApiInteractor.getUserDetail(username = username)
                 .fold(
                     onSuccess = { _state.value = _state.value.copy(userDetail = it) },
-                    onFailure = { throwable ->
-                        throwable.localizedMessage?.let {
-                            _state.value = _state.value.copy(
-                                dialogItem = DialogItem(
-                                    message = it,
-                                    onDismiss = { _state.value = _state.value.copy(dialogItem = null) },
-                                )
-                            )
-                        }
-                    },
+                    onFailure = ::onApiError,
                 )
+        }
+
+        viewModelScope.launch {
+            eventApiInteractor.getEventList(username = username, page = 1)
+                .fold(
+                    onSuccess = { _state.value = _state.value.copy(events = it) },
+                    onFailure = ::onApiError,
+                )
+        }
+    }
+
+    private fun onApiError(throwable: Throwable) {
+        throwable.localizedMessage?.let {
+            _state.value = _state.value.copy(
+                dialogItem = DialogItem(
+                    message = it,
+                    onDismiss = { _state.value = _state.value.copy(dialogItem = null) },
+                )
+            )
         }
     }
 
@@ -48,6 +61,7 @@ class UserDetailViewModel(
     data class State(
         val title: String,
         val userDetail: UserDetailData? = null,
+        val events: List<EventData>? = null,
         val dialogItem: DialogItem? = null,
     )
 }

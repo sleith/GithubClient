@@ -2,7 +2,9 @@ package liem.ray.githubclient.di
 
 import com.google.gson.FieldNamingPolicy
 import com.google.gson.GsonBuilder
+import liem.ray.githubclient.api.EventApi
 import liem.ray.githubclient.api.UserApi
+import liem.ray.githubclient.api.interactors.EventApiInteractor
 import liem.ray.githubclient.api.interactors.UserApiInteractor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -39,7 +41,9 @@ val apiModule = module {
   }
 
   single { get<Retrofit>().create<UserApi>() }
+    single { get<Retrofit>().create<EventApi>() }
   single { UserApiInteractor(get()) }
+    single { EventApiInteractor(get()) }
 }
 
 private const val NETWORK_TIMEOUT_DEFAULT_SECONDS = 90L

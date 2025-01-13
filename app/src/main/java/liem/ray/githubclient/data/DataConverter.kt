@@ -1,5 +1,6 @@
 package liem.ray.githubclient.data
 
+import liem.ray.githubclient.data.apiModel.EventApiModel
 import liem.ray.githubclient.data.apiModel.UserApiModel
 import liem.ray.githubclient.data.apiModel.UserDetailApiModel
 import java.text.SimpleDateFormat
@@ -42,5 +43,46 @@ fun UserDetailApiModel.toData(): UserDetailData {
                 ""
             }
         },
+    )
+}
+
+fun EventApiModel.toData(): EventData {
+    return EventData(
+        repoName = repo?.name.orEmpty(),
+        type = EventType.getType(type.orEmpty()),
+        orgName = org?.login.orEmpty(),
+        payload = payload?.toData(),
+    )
+}
+
+private fun EventApiModel.Payload.toData(): EventData.PayloadData {
+    return EventData.PayloadData(
+        action = action.orEmpty(),
+        ref = ref.orEmpty(),
+        refType = refType.orEmpty(),
+        description = description.orEmpty(),
+        comment = comment?.let { comment ->
+            EventData.PayloadData.CommentData(
+                comment = comment.body.orEmpty(),
+                user = comment.user?.toData(),
+            )
+        },
+        release = release?.let { release -> EventData.PayloadData.ReleaseData(name = release.name.orEmpty()) },
+        commits = commits?.map { commit ->
+            EventData.PayloadData.CommitData(
+                sha = commit.sha.orEmpty(),
+                message = commit.message.orEmpty(),
+                url = commit.url.orEmpty(),
+            )
+        } ?: emptyList(),
+        pullRequest = pullRequest?.let { pullRequest ->
+            EventData.PayloadData.PullRequestData(
+                title = pullRequest.title.orEmpty(),
+                url = pullRequest.url.orEmpty(),
+            )
+        },
+        review = review?.let { review ->
+            EventData.PayloadData.ReviewData(body = review.body.orEmpty(), user = review.user?.toData())
+        }
     )
 }

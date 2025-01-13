@@ -12,6 +12,7 @@ val viewModelModule = module {
         UserDetailViewModel(
             username = username,
             userApiInteractor = get(),
+            eventApiInteractor = get(),
             navigator = navigator
         )
     }

@@ -7,32 +7,24 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.skydoves.landscapist.ImageOptions
-import com.skydoves.landscapist.components.rememberImageComponent
-import com.skydoves.landscapist.glide.GlideImage
-import com.skydoves.landscapist.placeholder.placeholder.PlaceholderPlugin
 import liem.ray.githubclient.R
 import liem.ray.githubclient.data.UserData
 import liem.ray.githubclient.navigation.NavigatorService
 import liem.ray.githubclient.ui.common.BaseScreen
+import liem.ray.githubclient.ui.components.AvatarView
 import liem.ray.githubclient.ui.components.showDialog
 import org.koin.androidx.compose.getViewModel
 import org.koin.core.parameter.parametersOf
@@ -77,20 +69,7 @@ private fun UserRow(user: UserData, onClick: (UserData) -> Unit) {
             modifier = Modifier.padding(10.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            GlideImage(
-                modifier = Modifier
-                    .size(50.dp)
-                    .clip(CircleShape),
-                imageModel = { user.avatarUrl },
-                imageOptions = ImageOptions(
-                    contentScale = ContentScale.Crop,
-                    alignment = Alignment.Center
-                ),
-                component = rememberImageComponent {
-                    +PlaceholderPlugin.Failure(painterResource(id = R.drawable.ic_avatar))
-                },
-                previewPlaceholder = painterResource(id = R.drawable.ic_avatar),
-            )
+            AvatarView(avatarUrl = user.avatarUrl, size = 50.dp)
             Spacer(modifier = Modifier.width(10.dp))
             Text(user.login)
         }
