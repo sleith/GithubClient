@@ -12,8 +12,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -47,38 +49,41 @@ fun UserDetailScreen(username: String, navigatorService: NavigatorService) {
     Content(state = state, actionHandler = viewModel)
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun Content(
     state: UserDetailViewModel.State,
     actionHandler: UserDetailViewModelActionHandler,
 ) {
     BaseScreen(title = state.title, onBackClick = actionHandler::onBackClick) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize(),
-        ) {
-            val userDetail = state.userDetail ?: return@BaseScreen
-            HeaderView(userDetail = userDetail)
-            StatView(userDetail = userDetail)
+        PullToRefreshBox(isRefreshing = state.isRefreshing, onRefresh = actionHandler::onRefresh) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize(),
+            ) {
+                val userDetail = state.userDetail ?: return@Column
+                HeaderView(userDetail = userDetail)
+                StatView(userDetail = userDetail)
 
-            val eventItems = state.events
-            if (eventItems != null) {
-                if (eventItems.isNotEmpty()) {
-                    val listState = rememberLazyListState()
-                    LazyColumn(state = listState, modifier = Modifier.fillMaxSize()) {
-                        items(items = eventItems) {
-                            HorizontalDivider()
-                            EventView(event = it)
+                val eventItems = state.events
+                if (eventItems != null) {
+                    if (eventItems.isNotEmpty()) {
+                        val listState = rememberLazyListState()
+                        LazyColumn(state = listState, modifier = Modifier.fillMaxSize()) {
+                            items(items = eventItems) {
+                                HorizontalDivider()
+                                EventView(event = it)
+                            }
                         }
+                        listState.OnBottomReached { actionHandler.onLoadMore() }
+                    } else {
+                        Spacer(modifier = Modifier.height(20.dp))
+                        Text(
+                            text = stringResource(id = R.string.user_detail_no_activities),
+                            modifier = Modifier.fillMaxSize(),
+                            textAlign = TextAlign.Center,
+                        )
                     }
-                    listState.OnBottomReached { actionHandler.onLoadMore() }
-                } else {
-                    Spacer(modifier = Modifier.height(20.dp))
-                    Text(
-                        text = stringResource(id = R.string.user_detail_no_activities),
-                        modifier = Modifier.fillMaxSize(),
-                        textAlign = TextAlign.Center,
-                    )
                 }
             }
         }

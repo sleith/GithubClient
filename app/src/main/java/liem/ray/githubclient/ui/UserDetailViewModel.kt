@@ -2,9 +2,12 @@ package liem.ray.githubclient.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import liem.ray.githubclient.common.item.DialogItem
 import liem.ray.githubclient.data.EventData
 import liem.ray.githubclient.data.UserDetailData
@@ -29,24 +32,35 @@ class UserDetailViewModel(
     private val pageSize = 10
 
     private fun onViewStartObserving() {
+        reloadData()
+    }
+
+    private fun reloadData() {
         viewModelScope.launch {
             userRepository.getUserDetail(username = username)
                 .fold(
                     onSuccess = { _state.value = _state.value.copy(userDetail = it) },
                     onFailure = ::onApiError,
                 )
+            withContext(Dispatchers.IO) {
+                loadEventData(isRefresh = true, coroutineScope = this)
+            }
+            _state.value = _state.value.copy(isRefreshing = false)
         }
+    }
 
-        loadEventData(isRefresh = true)
+    override fun onRefresh() {
+        _state.value = _state.value.copy(isRefreshing = true)
+        reloadData()
     }
 
     override fun onLoadMore() {
         if (!canLoadMore) return
-        loadEventData()
+        loadEventData(coroutineScope = viewModelScope)
     }
 
-    private fun loadEventData(isRefresh: Boolean = false) {
-        viewModelScope.launch {
+    private fun loadEventData(isRefresh: Boolean = false, coroutineScope: CoroutineScope) {
+        coroutineScope.launch {
             val page = if (isRefresh) 1 else currEventPage + 1
             eventRepository.getEventList(username = username, page = page, pageSize = pageSize)
                 .fold(
@@ -82,10 +96,12 @@ class UserDetailViewModel(
         val userDetail: UserDetailData? = null,
         val events: List<EventData>? = null,
         val dialogItem: DialogItem? = null,
+        val isRefreshing: Boolean = false,
     )
 }
 
 interface UserDetailViewModelActionHandler {
     fun onBackClick() = Unit
     fun onLoadMore() = Unit
+    fun onRefresh() = Unit
 }
