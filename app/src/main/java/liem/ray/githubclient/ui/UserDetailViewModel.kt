@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -38,7 +37,6 @@ class UserDetailViewModel(
     private fun reloadData() {
         viewModelScope.launch {
             val job1 = async {
-                delay(1000)
                 userRepository.getUserDetail(username = username)
                     .fold(
                         onSuccess = { _state.value = _state.value.copy(userDetail = it) },

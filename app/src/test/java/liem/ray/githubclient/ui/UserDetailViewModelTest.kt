@@ -20,7 +20,9 @@ class UserDetailViewModelTest {
     @get:Rule
     val coroutinesTestRule = CoroutinesTestRule()
 
-    private val userRepository = mockk<UserRepository>(relaxed = true)
+    private val userRepository = mockk<UserRepository>(relaxed = true) {
+        coEvery { getUserDetail(username = any()) } returns Result.success(mockk())
+    }
     private val eventRepository = mockk<EventRepository>(relaxed = true)
     private val navigator = mockk<NavigatorService>(relaxed = true)
     private val viewModel = UserDetailViewModel(
@@ -90,5 +92,57 @@ class UserDetailViewModelTest {
         verify {
             navigator.goBack()
         }
+    }
+
+    @Test
+    fun `On load more data calls load more items correctly`() = runTest {
+        val firstPageEventItems =
+            listOf<EventData>(mockk(), mockk(), mockk(), mockk(), mockk(), mockk(), mockk(), mockk(), mockk(), mockk())
+        coEvery {
+            eventRepository.getEventList(username = any(), page = 1, pageSize = any())
+        } returns Result.success(firstPageEventItems)
+
+        val secondPageEventItems = listOf(mockk<EventData>(), mockk<EventData>(), mockk<EventData>())
+        coEvery {
+            eventRepository.getEventList(username = any(), page = 2, pageSize = any())
+        } returns Result.success(secondPageEventItems)
+
+        viewModel.state
+        coVerify {
+            eventRepository.getEventList(username = any(), page = 1, pageSize = any())
+        }
+
+        viewModel.onLoadMore()
+
+        coVerify {
+            eventRepository.getEventList(username = any(), page = 2, pageSize = any())
+        }
+
+        val stateValue = viewModel.state.value
+        assertEquals(expected = firstPageEventItems + secondPageEventItems, stateValue.events)
+    }
+
+    @Test
+    fun `On refresh should reload data correctly`() = runTest {
+        val items =
+            listOf<EventData>(mockk(), mockk(), mockk(), mockk(), mockk(), mockk(), mockk(), mockk(), mockk(), mockk())
+        coEvery {
+            eventRepository.getEventList(username = any(), page = any(), pageSize = any())
+        } returns Result.success(items)
+
+        viewModel.state
+        viewModel.onLoadMore()
+        viewModel.onLoadMore()
+
+        assertEquals(expected = 30, viewModel.state.value.events?.size ?: 0)
+
+        viewModel.onRefresh()
+
+        coVerify {
+            userRepository.getUserDetail(username = "raymond")
+            eventRepository.getEventList(username = "raymond", page = 1, pageSize = any())
+        }
+
+        assertEquals(expected = items, viewModel.state.value.events)
     }
 }

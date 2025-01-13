@@ -63,4 +63,80 @@ class UserListViewModelTest {
             navigator.navigateToUserDetail(username = "ray")
         }
     }
+
+    @Test
+    fun `On load more data calls load more items correctly`() = runTest {
+        val firstPageItems = listOf(
+            UserData(login = "ray1", id = 1L, avatarUrl = "avatarUrl"),
+            UserData(login = "ray2", id = 2L, avatarUrl = "avatarUrl"),
+        )
+        coEvery {
+            userRepository.getUserList(since = null)
+        } returns Result.success(firstPageItems)
+
+        val secondPageItems = listOf(
+            UserData(login = "ray3", id = 1L, avatarUrl = "avatarUrl"),
+            UserData(login = "ray4", id = 2L, avatarUrl = "avatarUrl"),
+        )
+        coEvery {
+            userRepository.getUserList(since = 2)
+        } returns Result.success(secondPageItems)
+
+        viewModel.state
+        coVerify {
+            userRepository.getUserList(since = null)
+        }
+
+        viewModel.onLoadMore()
+
+        coVerify {
+            userRepository.getUserList(since = 2)
+        }
+
+        val stateValue = viewModel.state.value
+        assertEquals(expected = firstPageItems + secondPageItems, stateValue.users)
+    }
+
+    @Test
+    fun `On refresh should reload data correctly`() = runTest {
+        val firstPageItems = listOf(
+            UserData(login = "ray1", id = 1L, avatarUrl = "avatarUrl"),
+            UserData(login = "ray2", id = 2L, avatarUrl = "avatarUrl"),
+        )
+        coEvery {
+            userRepository.getUserList(since = null)
+        } returns Result.success(firstPageItems)
+
+        coEvery {
+            userRepository.getUserList(since = 2)
+        } returns Result.success(
+            listOf(
+                UserData(login = "ray3", id = 3L, avatarUrl = "avatarUrl"),
+                UserData(login = "ray4", id = 4L, avatarUrl = "avatarUrl"),
+            )
+        )
+
+        coEvery {
+            userRepository.getUserList(since = 4)
+        } returns Result.success(
+            listOf(
+                UserData(login = "ray3", id = 3L, avatarUrl = "avatarUrl"),
+                UserData(login = "ray4", id = 4L, avatarUrl = "avatarUrl"),
+            )
+        )
+
+
+        viewModel.state
+        viewModel.onLoadMore()
+        viewModel.onLoadMore()
+
+        assertEquals(expected = 6, viewModel.state.value.users.size)
+
+        viewModel.onRefresh()
+
+        coVerify {
+            userRepository.getUserList(since = null)
+        }
+        assertEquals(expected = firstPageItems, viewModel.state.value.users)
+    }
 }
