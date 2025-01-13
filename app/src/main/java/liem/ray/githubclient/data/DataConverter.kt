@@ -7,7 +7,6 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 
 fun UserApiModel.toData(): UserData {
-
     return UserData(
         login = login.orEmpty(),
         id = id ?: 0L,
