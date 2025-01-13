@@ -3,11 +3,11 @@ package liem.ray.githubclient.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import liem.ray.githubclient.common.item.DialogItem
 import liem.ray.githubclient.data.EventData
 import liem.ray.githubclient.data.UserDetailData
@@ -37,14 +37,19 @@ class UserDetailViewModel(
 
     private fun reloadData() {
         viewModelScope.launch {
-            userRepository.getUserDetail(username = username)
-                .fold(
-                    onSuccess = { _state.value = _state.value.copy(userDetail = it) },
-                    onFailure = ::onApiError,
-                )
-            withContext(Dispatchers.IO) {
+            val job1 = async {
+                delay(1000)
+                userRepository.getUserDetail(username = username)
+                    .fold(
+                        onSuccess = { _state.value = _state.value.copy(userDetail = it) },
+                        onFailure = ::onApiError,
+                    )
+            }
+            val job2 = async {
                 loadEventData(isRefresh = true, coroutineScope = this)
             }
+            job1.join()
+            job2.join()
             _state.value = _state.value.copy(isRefreshing = false)
         }
     }
