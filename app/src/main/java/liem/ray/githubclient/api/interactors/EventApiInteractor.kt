@@ -1,16 +1,11 @@
 package liem.ray.githubclient.api.interactors
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import liem.ray.githubclient.api.EventApi
-import liem.ray.githubclient.data.toData
+import liem.ray.githubclient.data.apiModel.EventApiModel
 
 
 class EventApiInteractor(private val eventApi: EventApi) {
-    suspend fun getEventList(username: String, page: Int = 1) = withContext(Dispatchers.IO) {
-        Result.runCatching {
-            val events = eventApi.getEvents(username, page)
-            events.map { it.toData() }
-        }
+    suspend fun getEventList(username: String, page: Int = 1, pageSize: Int): List<EventApiModel> {
+        return eventApi.getEvents(username = username, page = page, pageSize = pageSize)
     }
 }

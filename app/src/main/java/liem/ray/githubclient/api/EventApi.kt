@@ -10,5 +10,6 @@ interface EventApi {
     suspend fun getEvents(
         @Path("username") username: String,
         @Query("page") page: Int = 1,
+        @Query("per_page") pageSize: Int = 10,
     ): List<EventApiModel>
 }

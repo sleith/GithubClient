@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import liem.ray.githubclient.R
+import liem.ray.githubclient.common.ui.OnBottomReached
 import liem.ray.githubclient.data.UserDetailData
 import liem.ray.githubclient.navigation.NavigatorService
 import liem.ray.githubclient.ui.common.BaseScreen
@@ -63,12 +64,14 @@ private fun Content(
             val eventItems = state.events
             if (eventItems != null) {
                 if (eventItems.isNotEmpty()) {
-                    LazyColumn(state = rememberLazyListState(), modifier = Modifier.fillMaxSize()) {
+                    val listState = rememberLazyListState()
+                    LazyColumn(state = listState, modifier = Modifier.fillMaxSize()) {
                         items(items = eventItems) {
                             HorizontalDivider()
                             EventView(event = it)
                         }
                     }
+                    listState.OnBottomReached { actionHandler.onLoadMore() }
                 } else {
                     Spacer(modifier = Modifier.height(20.dp))
                     Text(

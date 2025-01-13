@@ -32,8 +32,8 @@ class UserListViewModel(
     }
 
     private fun loadData(isRefresh: Boolean = false) {
-        val since = if (isRefresh) null else _state.value.users.lastOrNull()?.id
         viewModelScope.launch {
+            val since = if (isRefresh) null else _state.value.users.lastOrNull()?.id
             userRepository.getUserList(since = since)
                 .fold(
                     onSuccess = { newItems ->

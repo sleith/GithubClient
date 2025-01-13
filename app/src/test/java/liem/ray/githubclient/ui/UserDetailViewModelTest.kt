@@ -5,10 +5,10 @@ import io.mockk.coVerify
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.test.runTest
-import liem.ray.githubclient.api.interactors.EventApiInteractor
 import liem.ray.githubclient.data.EventData
 import liem.ray.githubclient.data.UserDetailData
 import liem.ray.githubclient.navigation.NavigatorService
+import liem.ray.githubclient.repos.EventRepository
 import liem.ray.githubclient.repos.UserRepository
 import liem.ray.githubclient.rules.CoroutinesTestRule
 import org.junit.Rule
@@ -21,12 +21,12 @@ class UserDetailViewModelTest {
     val coroutinesTestRule = CoroutinesTestRule()
 
     private val userRepository = mockk<UserRepository>(relaxed = true)
-    private val eventApiInteractor = mockk<EventApiInteractor>(relaxed = true)
+    private val eventRepository = mockk<EventRepository>(relaxed = true)
     private val navigator = mockk<NavigatorService>(relaxed = true)
     private val viewModel = UserDetailViewModel(
         username = "raymond",
         userRepository = userRepository,
-        eventApiInteractor = eventApiInteractor,
+        eventRepository = eventRepository,
         navigator = navigator,
     )
 
@@ -39,14 +39,14 @@ class UserDetailViewModelTest {
 
         val eventItems = listOf(mockk<EventData>(), mockk<EventData>(), mockk<EventData>())
         coEvery {
-            eventApiInteractor.getEventList(username = any(), page = any())
+            eventRepository.getEventList(username = any(), page = any(), pageSize = any())
         } returns Result.success(eventItems)
 
         viewModel.state
 
         coVerify {
             userRepository.getUserDetail(username = "raymond")
-            eventApiInteractor.getEventList(username = "raymond", page = 1)
+            eventRepository.getEventList(username = "raymond", page = 1, pageSize = 10)
         }
         assertEquals(expected = userDetailData, actual = viewModel.state.value.userDetail)
         assertEquals(expected = eventItems, actual = viewModel.state.value.events)
@@ -58,9 +58,10 @@ class UserDetailViewModelTest {
             userRepository.getUserDetail(username = any())
         } returns Result.failure(Throwable(message = "Error"))
 
+        val eventItems = listOf(mockk<EventData>(), mockk<EventData>(), mockk<EventData>())
         coEvery {
-            eventApiInteractor.getEventList(username = any(), page = any())
-        } returns Result.success(mockk())
+            eventRepository.getEventList(username = any(), page = any(), pageSize = any())
+        } returns Result.success(eventItems)
 
         val errorDialogItem = viewModel.state.value.dialogItem
         assertNotNull(actual = errorDialogItem)
@@ -74,7 +75,7 @@ class UserDetailViewModelTest {
         } returns Result.success(mockk())
 
         coEvery {
-            eventApiInteractor.getEventList(username = any(), page = any())
+            eventRepository.getEventList(username = any(), page = any(), pageSize = any())
         } returns Result.failure(Throwable(message = "Error"))
 
         val errorDialogItem = viewModel.state.value.dialogItem

@@ -5,17 +5,17 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import liem.ray.githubclient.api.interactors.EventApiInteractor
 import liem.ray.githubclient.common.item.DialogItem
 import liem.ray.githubclient.data.EventData
 import liem.ray.githubclient.data.UserDetailData
 import liem.ray.githubclient.navigation.NavigatorService
+import liem.ray.githubclient.repos.EventRepository
 import liem.ray.githubclient.repos.UserRepository
 
 class UserDetailViewModel(
     private val username: String,
     private val userRepository: UserRepository,
-    private val eventApiInteractor: EventApiInteractor,
+    private val eventRepository: EventRepository,
     private val navigator: NavigatorService,
 ) : ViewModel(), UserDetailViewModelActionHandler {
 
@@ -24,6 +24,9 @@ class UserDetailViewModel(
         onViewStartObserving()
         _state
     }
+    private var canLoadMore = false
+    private var currEventPage = 1
+    private val pageSize = 10
 
     private fun onViewStartObserving() {
         viewModelScope.launch {
@@ -34,10 +37,26 @@ class UserDetailViewModel(
                 )
         }
 
+        loadEventData(isRefresh = true)
+    }
+
+    override fun onLoadMore() {
+        if (!canLoadMore) return
+        loadEventData()
+    }
+
+    private fun loadEventData(isRefresh: Boolean = false) {
         viewModelScope.launch {
-            eventApiInteractor.getEventList(username = username, page = 1)
+            val page = if (isRefresh) 1 else currEventPage + 1
+            eventRepository.getEventList(username = username, page = page, pageSize = pageSize)
                 .fold(
-                    onSuccess = { _state.value = _state.value.copy(events = it) },
+                    onSuccess = { newItems ->
+                        canLoadMore = newItems.size >= pageSize
+                        currEventPage = page
+
+                        val items = if (isRefresh) newItems else _state.value.events.orEmpty() + newItems
+                        _state.value = _state.value.copy(events = items)
+                    },
                     onFailure = ::onApiError,
                 )
         }
@@ -68,4 +87,5 @@ class UserDetailViewModel(
 
 interface UserDetailViewModelActionHandler {
     fun onBackClick() = Unit
+    fun onLoadMore() = Unit
 }

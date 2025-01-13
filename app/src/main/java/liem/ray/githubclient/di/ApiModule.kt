@@ -42,8 +42,8 @@ val apiModule = module {
 
     single { get<Retrofit>().create<UserApi>() }
     single { get<Retrofit>().create<EventApi>() }
-    single { UserApiInteractor(get()) }
-    single { EventApiInteractor(get()) }
+    single { UserApiInteractor(userApi = get()) }
+    single { EventApiInteractor(eventApi = get()) }
 }
 
 private const val NETWORK_TIMEOUT_DEFAULT_SECONDS = 90L
