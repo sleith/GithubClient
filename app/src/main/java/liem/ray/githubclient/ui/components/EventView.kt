@@ -3,7 +3,7 @@ package liem.ray.githubclient.ui.components
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -11,20 +11,26 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewParameter
+import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import liem.ray.githubclient.R
 import liem.ray.githubclient.data.EventData
 import liem.ray.githubclient.data.EventType
+import liem.ray.githubclient.data.UserData
 
 @Composable
 fun EventView(event: EventData) {
     Column(
         modifier = Modifier
-            .fillMaxSize()
+            .fillMaxWidth()
             .padding(all = 10.dp),
     ) {
         Text(event.repoName, color = Color.Blue)
         if (event.orgName.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(4.dp))
             IconTextView(iconResId = R.drawable.ic_org, text = event.orgName, iconSize = 12.dp)
         }
         Spacer(modifier = Modifier.height(4.dp))
@@ -50,7 +56,11 @@ private fun IssueCommentEventRow(event: EventData) {
     Row {
         AvatarView(avatarUrl = comment.user?.avatarUrl, size = 30.dp)
         Spacer(modifier = Modifier.width(6.dp))
-        Text(comment.comment, color = Color.DarkGray)
+        Column {
+            Text(text = comment.user?.login.orEmpty(), color = Color.Black, fontSize = 14.sp)
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(text = comment.comment, color = Color.DarkGray, fontSize = 12.sp)
+        }
     }
 }
 
@@ -78,7 +88,11 @@ private fun CommitCommentEventRow(event: EventData) {
     Row {
         AvatarView(avatarUrl = comment.user?.avatarUrl, size = 30.dp)
         Spacer(modifier = Modifier.width(6.dp))
-        Text(text = comment.comment, color = Color.DarkGray)
+        Column {
+            Text(text = comment.user?.login.orEmpty(), color = Color.Black, fontSize = 14.sp)
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(text = comment.comment, color = Color.DarkGray, fontSize = 12.sp)
+        }
     }
 }
 
@@ -120,9 +134,13 @@ private fun PullRequestReviewEventRow(event: EventData) {
         PullRequestIconTextView(pullRequest = pullRequest)
         Spacer(modifier = Modifier.height(4.dp))
         Row {
-            AvatarView(avatarUrl = review.user?.avatarUrl, size = 30.dp)
+            AvatarView(avatarUrl = review.user?.avatarUrl, size = 40.dp)
             Spacer(modifier = Modifier.width(6.dp))
-            Text(text = review.body, color = Color.DarkGray)
+            Column {
+                Text(text = review.user?.login.orEmpty(), color = Color.Black, fontSize = 14.sp)
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(text = review.body, color = Color.DarkGray, fontSize = 12.sp)
+            }
         }
     }
 }
@@ -138,7 +156,11 @@ private fun PullRequestReviewCommentEventRow(event: EventData) {
         Row {
             AvatarView(avatarUrl = comment.user?.avatarUrl, size = 30.dp)
             Spacer(modifier = Modifier.width(6.dp))
-            Text(text = comment.comment, color = Color.DarkGray)
+            Column {
+                Text(text = comment.user?.login.orEmpty(), color = Color.Black, fontSize = 14.sp)
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(text = comment.comment, color = Color.DarkGray, fontSize = 12.sp)
+            }
         }
     }
 }
@@ -162,5 +184,49 @@ private fun PullRequestIconTextView(pullRequest: EventData.PayloadData.PullReque
         textColor = Color.Magenta,
         iconSize = 12.dp,
         iconTintColor = Color.Magenta,
+    )
+}
+
+@Composable
+@Preview(showBackground = true)
+fun PreviewEventView(
+    @PreviewParameter(EventViewPreviewParameterProvider::class) eventData: EventData
+) {
+    EventView(event = eventData)
+}
+
+private class EventViewPreviewParameterProvider : PreviewParameterProvider<EventData> {
+    override val values = EventType.entries.map { getEventPreviewData(type = it) }.asSequence()
+}
+
+
+private fun getEventPreviewData(type: EventType): EventData {
+    return EventData(
+        repoName = "Repo Name",
+        orgName = "BitFlyer",
+        type = type,
+        payload = EventData.PayloadData(
+            action = "Action",
+            ref = "Ref",
+            refType = "Ref Type",
+            description = "Description",
+            comment = EventData.PayloadData.CommentData(
+                comment = "My comment here",
+                user = UserData(login = "Ray", id = 1L, avatarUrl = "")
+            ),
+            commits = listOf(
+                EventData.PayloadData.CommitData(
+                    sha = "Sha2343",
+                    message = "Commit message",
+                    url = "https://commit.url"
+                )
+            ),
+            pullRequest = EventData.PayloadData.PullRequestData(title = "PullRequest title", url = "https://pullrequest.url"),
+            release = EventData.PayloadData.ReleaseData(name = "Release Name"),
+            review = EventData.PayloadData.ReviewData(
+                body = "My review here",
+                user = UserData(login = "Ray", id = 1L, avatarUrl = "https://avatar.url")
+            )
+        )
     )
 }
