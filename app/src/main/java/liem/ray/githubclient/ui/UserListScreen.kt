@@ -11,7 +11,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -38,22 +40,25 @@ fun UserListScreen(navigatorService: NavigatorService) {
     Content(state = state, actionHandler = viewModel)
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun Content(
     state: UserListViewModel.State,
     actionHandler: UserListViewModelActionHandler,
 ) {
-    val listState = rememberLazyListState()
     BaseScreen(title = stringResource(id = R.string.app_name), onBackClick = null) {
-        LazyColumn(state = listState, modifier = Modifier.fillMaxSize()) {
-            items(items = state.users) {
-                UserRow(
-                    user = it,
-                    onClick = actionHandler::onUserClick,
-                )
+        PullToRefreshBox(isRefreshing = state.isRefreshing, onRefresh = actionHandler::onRefresh) {
+            val listState = rememberLazyListState()
+            LazyColumn(state = listState, modifier = Modifier.fillMaxSize()) {
+                items(items = state.users) {
+                    UserRow(
+                        user = it,
+                        onClick = actionHandler::onUserClick,
+                    )
+                }
             }
+            listState.OnBottomReached { actionHandler.onLoadMore() }
         }
-        listState.OnBottomReached { actionHandler.onLoadMore() }
     }
 
     state.dialogItem?.let { showDialog(it) }

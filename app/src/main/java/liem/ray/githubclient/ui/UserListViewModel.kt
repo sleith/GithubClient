@@ -31,6 +31,11 @@ class UserListViewModel(
         loadData()
     }
 
+    override fun onRefresh() {
+        _state.value = _state.value.copy(isRefreshing = true)
+        loadData(isRefresh = true)
+    }
+
     private fun loadData(isRefresh: Boolean = false) {
         viewModelScope.launch {
             val since = if (isRefresh) null else _state.value.users.lastOrNull()?.id
@@ -47,11 +52,12 @@ class UserListViewModel(
                                 dialogItem = DialogItem(
                                     message = it,
                                     onDismiss = { _state.value = _state.value.copy(dialogItem = null) },
-                                )
+                                ),
                             )
                         }
                     },
                 )
+            _state.value = _state.value.copy(isRefreshing = false)
         }
     }
 
@@ -63,10 +69,12 @@ class UserListViewModel(
     data class State(
         val users: List<UserData> = emptyList(),
         val dialogItem: DialogItem? = null,
+        val isRefreshing: Boolean = false,
     )
 }
 
 interface UserListViewModelActionHandler {
     fun onUserClick(userData: UserData) = Unit
     fun onLoadMore() = Unit
+    fun onRefresh() = Unit
 }
