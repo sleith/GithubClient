@@ -8,9 +8,9 @@ import liem.ray.githubclient.data.toData
 class UserRepository(
     private val userApiInteractor: UserApiInteractor,
 ) {
-    suspend fun getUserList(since: Long? = null) = withContext(Dispatchers.IO) {
+    suspend fun getUserList(since: Long? = null, pageSize: Int) = withContext(Dispatchers.IO) {
         Result.runCatching {
-            val userList = userApiInteractor.getUserList(since = since)
+            val userList = userApiInteractor.getUserList(since = since, pageSize = pageSize)
             userList.map { it.toData() }
         }
     }

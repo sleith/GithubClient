@@ -21,6 +21,7 @@ class UserListViewModel(
         _state
     }
     private var canLoadMore = false
+    private val pageSize = 10
 
     private fun onViewStartObserving() {
         loadData(isRefresh = true)
@@ -39,10 +40,10 @@ class UserListViewModel(
     private fun loadData(isRefresh: Boolean = false) {
         viewModelScope.launch {
             val since = if (isRefresh) null else _state.value.users.lastOrNull()?.id
-            userRepository.getUserList(since = since)
+            userRepository.getUserList(since = since, pageSize = pageSize)
                 .fold(
                     onSuccess = { newItems ->
-                        canLoadMore = newItems.isNotEmpty()
+                        canLoadMore = newItems.size >= pageSize
                         val items = if (isRefresh) newItems else _state.value.users + newItems
                         _state.value = _state.value.copy(users = items)
                     },

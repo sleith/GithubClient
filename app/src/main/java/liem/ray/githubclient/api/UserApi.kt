@@ -8,7 +8,7 @@ import retrofit2.http.Query
 
 interface UserApi {
     @GET("users")
-    suspend fun getUsers(@Query("since") since: Long? = null): List<UserApiModel>
+    suspend fun getUsers(@Query("since") since: Long? = null, @Query("per_page") pageSize: Int = 10): List<UserApiModel>
 
     @GET("users/{username}")
     suspend fun getUserDetail(@Path("username") username: String): UserDetailApiModel
